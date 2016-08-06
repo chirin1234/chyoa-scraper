@@ -32,11 +32,15 @@ def get_elapsed_time(seconds):
     else:
         return "%.3f seconds" % seconds
 
-def get_choice_names(ref_list):
-    names = []
+def get_choice_names(choices):
+    lines = []
 
-    for ref in ref_list:
-        names.append(" -> \"%s\"" % ref.name)
+    for choice in choices:
+        lines.append(" -> \"%s\"" % choice[1])
 
-    return "\n".join(names)
+    if lines:
+        lines.append("")
+        return "\n".join(lines)
+    else:
+        return "(none)\n"
 

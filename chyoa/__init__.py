@@ -4,6 +4,7 @@ __all__ = ["main"]
 __license__ = "MIT"
 
 from .scraper import Scraper
+from .serial import write_story
 from .util import get_elapsed_time
 
 import os.path
@@ -27,8 +28,6 @@ def main(argv=[__file__]):
     start = time.time()
     scraper = Scraper(argv[1])
     scraper.scrape()
-    scraper.resolve()
-    story = scraper.get_story()
-    print(story)
+    write_story(scraper.story, dest)
     print("Finished in %s." % get_elapsed_time(time.time() - start))
 
