@@ -3,6 +3,7 @@ __all__ = ["ChapterParser"]
 from .story import Chapter, Story
 from html.parser import HTMLParser
 from urllib.request import urlopen
+from urllib.error import HTTPError
 import re
 
 CHARSET_REGEX = re.compile(r"charset=([^ ]+)")
@@ -30,7 +31,15 @@ class ChapterParser(HTMLParser):
         self._reset()
 
         print("Reading %s..." % url)
-        response = urlopen(url)
+        try:
+            response = urlopen(url)
+        except HTTPError as err:
+            if err.code == 404:
+                print("Chapter deleted, skipping...")
+                return None
+            else:
+                raise
+
         charset = self.get_charset(response.getheader("Content-Type"))
         html = response.read().decode(charset)
         self.feed(html)

@@ -5,7 +5,7 @@ from .story import Chapter, Story
 from .util import get_choice_names
 import re
 
-CHYOA_URL_REGEX = re.compile(r"^https://chyoa.com/story/[A-Za-z0-9\-_]+.[0-9]+$")
+CHYOA_URL_REGEX = re.compile(r"^https://chyoa.com/story/[A-Za-z0-9%\-_]+.[0-9]+$")
 
 class Scraper(object):
     def __init__(self, url):
@@ -28,9 +28,12 @@ class Scraper(object):
             return
 
         chapter = self.parser.get_chapter(url)
-        self.story.chapters[id] = chapter
         self.visited.add(url)
 
+        if chapter is None:
+            return
+
+        self.story.chapters[id] = chapter
         print("Chapter \"%s\":\n%s" % (chapter.title, get_choice_names(chapter.choices)))
         for id, url in chapter.choices:
             self._scrape_chapter(url, id)
