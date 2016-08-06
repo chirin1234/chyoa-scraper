@@ -28,7 +28,7 @@ class ChapterParser(HTMLParser):
         self.current_choice = None
         self.choices = set()
 
-    def get_chapter(self, url):
+    def get_chapter_fields(self, url):
         self._reset()
 
         print("Reading %s..." % url)
@@ -45,8 +45,9 @@ class ChapterParser(HTMLParser):
         html = response.read().decode(charset)
         self.feed(html)
 
-        fields = {
+        return {
             "name": self.name,
+            "description": self.description,
             "id": self.get_id(url),
             "author": self.author,
             "text": "".join(self.body),
@@ -54,21 +55,12 @@ class ChapterParser(HTMLParser):
             "choices": self.choices,
         }
 
-        if self.description:
-            fields["title"] = self.title
-            fields["name"] = "Introduction"
-            fields["description"] = self.description
-            return Story(**fields)
-        else:
-            return Chapter(**fields)
-
     def handle_starttag(self, tag, attrs):
         if tag == "meta":
             for key, value in attrs:
                 if key == "property":
                     if value == "og:title":
-                        self.title = dict(attrs)["content"]
-                        self.name = self.title
+                        self.name = dict(attrs)["content"]
                     elif value == "og:description":
                         self.description = dict(attrs)["content"]
                 if key == "name" and value =="description":

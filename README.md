@@ -8,12 +8,14 @@ This program uses Python 3. You can run the program from the command line:
 
 By default the program stores the exported story in the current directory. If an archive file is listed as the `destination-path` (e.g. `.zip`, `.tar.xz`) then the files are stored inside of the specified archive.
 
+You can also use this to capture just a subtree of a story. If you pass the URL of a chapter rather than the story, you will only get chapters that stem from to the end.
+
 ### API
 You can also use this as a library. After adding the directory of this repository to your python path, simply do `import chyoa`.
 
 The `scraper.Scraper` class: After initialization, invoking `scrape()` with a URL to a CHYOA story will fetch all the webpages of the child chapters until it has a full reconstruction of the story. This is then returned to you as a `Story` object.
 
-The `parser.ChapterParser` class: Use this if you want to only download a particular chapter or want to fetch chapters in some order not supported by `Scraper`. Once the parser is initialized, you just call `get_chapter()` and pass a URL. Note that this method may return a `Story` object if the chapter is the root in its chain.
+The `parser.ChapterParser` class: Use this if you want to only download a particular chapter or want to fetch chapters in some order not supported by `Scraper`. Once the parser is initialized, you just call `get_chapter_fields()` and pass a URL. This will return a dictionary of fields that you can use to instantiate a `Chapter` or `Story` object.
 
 The `story.Chapter` class: Represents a chapter in a story. It is mostly a container class, storing it's title, chapter ID, author, the body of the story as HTML, the question, and the possible choices in the form `(id, url)`.
 

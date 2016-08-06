@@ -40,7 +40,7 @@ def write_story(story, dest_dir):
 
 def write_chapter(chapter, dest_dir):
     metadata = {
-        "title": chapter.title,
+        "name": chapter.name,
         "author": chapter.author,
         "id": chapter.id,
         "question": chapter.question,
@@ -55,7 +55,7 @@ def write_chapter(chapter, dest_dir):
 
     metadata["choices"] = choice_ids
 
-    html = HTML_TEMPLATE % (chapter.title, chapter.text)
+    html = HTML_TEMPLATE % (chapter.name, chapter.text)
 
     metadata_path = os.path.join(dest_dir, "%s.json" % chapter.id)
     html_path = os.path.join(dest_dir, "%s.html" % chapter.id)

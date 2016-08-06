@@ -15,17 +15,14 @@ class Scraper(object):
         self.to_visit = []
 
     def scrape(self, url):
-        self.story = self.parser.get_chapter(url)
+        fields = self.parser.get_chapter_fields(url)
         self.visited.add(url)
-
-        if not isinstance(self.story, Story):
-            raise TypeError("The given URL points to a chapter, not a full story.")
+        self.story = Story(**fields)
 
         print("Story \"%s\":\nRoot \"%s\":\n%s" % (
             self.story.title, self.story.name, get_choice_names(self.story.choices)))
 
         self._scrape_urls(list(self.story.choices))
-
         while self.to_visit:
             self._scrape_urls(self.to_visit)
 
@@ -41,15 +38,14 @@ class Scraper(object):
                 continue
 
             self.visited.add(url)
-            chapter = self.parser.get_chapter(url)
-            if chapter is None:
+            fields = self.parser.get_chapter_fields(url)
+            if fields is None:
                 continue
 
+            chapter = Chapter(**fields)
             self.story.chapters[id] = chapter
             print("Chapter \"%s\":\n%s" % (chapter.name, get_choice_names(chapter.choices)))
-
-            for id, url in chapter.choices:
-                new_to_visit.append((id, url))
+            new_to_visit += list(chapter.choices)
 
         self.to_visit = new_to_visit
 

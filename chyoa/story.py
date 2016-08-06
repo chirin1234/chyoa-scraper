@@ -3,7 +3,7 @@ __all__ = ["Chapter", "Story"]
 from .util import abridge
 
 class Chapter(object):
-    def __init__(self, name=None, id=None, author=None, text=None, question=None, choices=set()):
+    def __init__(self, name, description, id, author, text, question, choices):
         self.name = name
         self.id = id
         self.author = author
@@ -16,10 +16,11 @@ class Chapter(object):
                 self.name, self.author, abridge(self.text), self.question, self.choices)
 
 class Story(Chapter):
-    def __init__(self, title=None, description=None, **kwargs):
+    def __init__(self, **kwargs):
         Chapter.__init__(self, **kwargs)
-        self.title = title
-        self.description = description
+        self.title = kwargs["name"]
+        self.name = "Introduction"
+        self.description = kwargs["description"]
         self.chapters = {}
 
     def __repr__(self):
