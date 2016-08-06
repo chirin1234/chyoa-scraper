@@ -16,6 +16,7 @@ class ChapterParser(HTMLParser):
         HTMLParser.__init__(self)
 
     def _reset(self):
+        self.name = None
         self.title = None
         self.description = None
         self.author = None
@@ -45,7 +46,7 @@ class ChapterParser(HTMLParser):
         self.feed(html)
 
         fields = {
-            "title": self.title,
+            "name": self.name,
             "id": self.get_id(url),
             "author": self.author,
             "text": "".join(self.body),
@@ -54,6 +55,8 @@ class ChapterParser(HTMLParser):
         }
 
         if self.description:
+            fields["title"] = self.title
+            fields["name"] = "Introduction"
             fields["description"] = self.description
             return Story(**fields)
         else:
@@ -62,9 +65,13 @@ class ChapterParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if tag == "meta":
             for key, value in attrs:
-                if key == "property" and value == "og:title":
-                    self.title = dict(attrs)["content"]
-                if key == "name" and value == "description":
+                if key == "property":
+                    if value == "og:title":
+                        self.title = dict(attrs)["content"]
+                        self.name = self.title
+                    elif value == "og:description":
+                        self.description = dict(attrs)["content"]
+                if key == "name" and value =="description":
                     self.description = dict(attrs)["content"]
         elif tag == "div":
             for key, value in attrs:
@@ -87,7 +94,7 @@ class ChapterParser(HTMLParser):
                         if match:
                             self.author = match.group(1)
         elif self.in_body:
-            self.body.append("<%s>" % tag)
+            self.body.append(self.create_tag(tag, attrs))
 
     def handle_data(self, data):
         if self.in_body:
@@ -111,7 +118,20 @@ class ChapterParser(HTMLParser):
         elif self.in_choices and tag == "div":
             self.in_choices = False
 
-    def get_charset(self, header):
+    @staticmethod
+    def create_tag(tag, attrs):
+        if attrs:
+            parts = [""]
+        else:
+            parts = []
+
+        for key, value in attrs:
+            parts.append("%s=\"%s\"" % (key, value))
+
+        return "<%s%s>" % (tag, " ".join(parts))
+
+    @staticmethod
+    def get_charset(header):
         if not header.startswith("text/html"):
             raise ValueError("Document type is not HTML")
 
@@ -122,7 +142,8 @@ class ChapterParser(HTMLParser):
             # Can't detect the charset, take a guess
             return "UTF-8"
 
-    def get_id(self, url):
+    @staticmethod
+    def get_id(url):
         match = CHAPTER_ID_REGEX.fullmatch(url)
         if match is None:
             raise ValueError("Unable to extract chapter ID from URL (%s)" % url)
