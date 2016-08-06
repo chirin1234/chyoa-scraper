@@ -2,6 +2,7 @@ __all__ = ["ChyoaPageParser", "Scraper"]
 
 from .chapter import Chapter, ChapterReference
 from .story import Story
+from .util import get_choice_names
 from html.parser import HTMLParser
 from urllib.request import urlopen
 from urllib import parse
@@ -16,6 +17,8 @@ CHYOA_USER_REGEX = re.compile(r"^https://chyoa.com/user/([A-Za-z0-9\-_]+)$")
 class ChyoaChapterParser(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self)
+
+    def get_chapter(self, url):
         self.title = None
         self.description = None
         self.author = None
@@ -27,25 +30,27 @@ class ChyoaChapterParser(HTMLParser):
         self.current_choice = None
         self.choices = []
 
-    def get_chapter(self, url):
         if url.startswith(":"):
-            with open(url[1:], "r") as fh:
+            filename = url[1:]
+            print("Fetching file locally: %s" % filename)
+            with open(filename, "r") as fh:
                 html = fh.read()
         else:
+            print("Fetching file remotely: %s" % url)
             response = urlopen(url)
             charset = self.get_charset(response.getheader("Content-Type"))
             html = response.read().decode(charset)
 
         self.feed(html)
         fields = {
-            "text": "".join(self.body),
+            "title": self.title,
             "author": self.author,
+            "text": "".join(self.body),
             "question": " ".join(self.question).strip(),
             "choices": self.choices,
         }
 
-        if self.title and self.description:
-            fields["title"] = self.title
+        if self.description:
             fields["description"] = self.description
             return Story(**fields)
         else:
@@ -88,7 +93,9 @@ class ChyoaChapterParser(HTMLParser):
             self.question.append(data.strip())
         elif self.in_choices:
             if self.current_choice:
-                self.choices.append(ChapterReference(data.strip(), self.current_choice))
+                name = data.strip()
+                self.choices.append(ChapterReference(name, self.current_choice))
+                self.current_choice = None
 
     def handle_endtag(self, tag):
         if self.in_body:
@@ -117,12 +124,42 @@ class Scraper(object):
         self.parser = ChyoaChapterParser()
         self.url = url
         self.visited = set()
+        self.story = None
+        self.chapters = {}
+        self.resolved = False
 
     def scrape(self):
-        chapter = self.parser.get_chapter(self.url)
+        self.story = self.parser.get_chapter(self.url)
         self.visited.add(self.url)
-        print(chapter)
-        print(chapter.text)
+
+        print("Root chapter \"%s\":\n%s" % (self.story.title, get_choice_names(self.story.choices)))
+        for ref in self.story.choices:
+            self._scrape_chapter(ref.url, ref.id)
+
+    def _scrape_chapter(self, url, id):
+        if url in self.visited:
+            print("(already visited %s)" % url)
+            return
+
+        chapter = self.parser.get_chapter(url)
+        self.chapters[id] = chapter
+        self.visited.add(url)
+
+        print("Chapter \"%s\":\n%s" % (chapter.title, get_choice_names(chapter.choices)))
+        for ref in chapter.choices:
+            self._scrape_chapter(ref.url, ref.id)
+
+    def resolve(self):
+        print("Attaching root chapter...")
+        root_ref = ChapterReference(self.story.title, self.url)
+        self.story.attach(root_ref.id, self.chapters)
+        self.resolved = True
+
+    def get_story(self):
+        if not self.resolved:
+            raise ValueError("Chapter references are not resolved yet.")
+
+        return self.story
 
     @staticmethod
     def is_chyoa_url(url):

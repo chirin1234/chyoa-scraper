@@ -27,6 +27,8 @@ def main(argv=[__file__]):
     start = time.time()
     scraper = Scraper(argv[1])
     scraper.scrape()
-    #TODO
+    scraper.resolve()
+    story = scraper.get_story()
+    print(story)
     print("Finished in %s." % get_elapsed_time(time.time() - start))
 
