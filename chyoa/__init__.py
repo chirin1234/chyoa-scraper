@@ -30,8 +30,8 @@ def main(argv=[__file__]):
         print("warning: in the form of \"https://chyoa.com/story/NAME.ID\"")
 
     start = time.time()
-    scraper = Scraper(argv[1])
-    scraper.scrape()
+    scraper = Scraper()
+    scraper.scrape(argv[1])
     story = scraper.story
 
     if ZIP_FILE_REGEX.fullmatch(dest):

@@ -8,41 +8,50 @@ import re
 CHYOA_URL_REGEX = re.compile(r"^https://chyoa.com/story/[^ ]+\.[0-9]+$")
 
 class Scraper(object):
-    def __init__(self, url):
+    def __init__(self):
         self.parser = ChapterParser()
-        self.url = url
-        self.visited = set()
         self.story = None
+        self.visited = set()
+        self.to_visit = []
 
-    def scrape(self):
-        self.story = self.parser.get_chapter(self.url)
-        self.visited.add(self.url)
+    def scrape(self, url):
+        self.story = self.parser.get_chapter(url)
+        self.visited.add(url)
 
-        print(self.story)
         if not isinstance(self.story, Story):
-            print("The URL you gave points to a chapter, not a full story.")
-            exit(1)
+            raise TypeError("The given URL points to a chapter, not a full story.")
 
         print("Story \"%s\":\nRoot \"%s\":\n%s" % (
             self.story.title, self.story.name, get_choice_names(self.story.choices)))
-        for id, url in self.story.choices:
-            self._scrape_chapter(url, id)
 
-    def _scrape_chapter(self, url, id):
-        if url in self.visited:
-            print("(already visited %s)" % url)
-            return
+        self._scrape_urls(list(self.story.choices))
 
-        chapter = self.parser.get_chapter(url)
-        self.visited.add(url)
+        while self.to_visit:
+            self._scrape_urls(self.to_visit)
 
-        if chapter is None:
-            return
+    def _scrape_urls(self, urls):
+        new_to_visit = []
 
-        self.story.chapters[id] = chapter
-        print("Chapter \"%s\":\n%s" % (chapter.name, get_choice_names(chapter.choices)))
-        for id, url in chapter.choices:
-            self._scrape_chapter(url, id)
+        for i in range(len(urls) - 1, -1, -1):
+            id, url = urls[i]
+            del urls[i]
+
+            if url in self.visited:
+                print("(already visited %s)" % url)
+                continue
+
+            self.visited.add(url)
+            chapter = self.parser.get_chapter(url)
+            if chapter is None:
+                continue
+
+            self.story.chapters[id] = chapter
+            print("Chapter \"%s\":\n%s" % (chapter.name, get_choice_names(chapter.choices)))
+
+            for id, url in chapter.choices:
+                new_to_visit.append((id, url))
+
+        self.to_visit = new_to_visit
 
     @staticmethod
     def is_chyoa_url(url):
