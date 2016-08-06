@@ -6,9 +6,9 @@ from urllib.request import urlopen
 import re
 
 CHARSET_REGEX = re.compile(r"charset=([^ ]+)")
-CHAPTER_ID_REGEX = re.compile(r"^https://chyoa.com/[^.]+\.([0-9]+)$")
-CHYOA_CHAPTER_REGEX = re.compile(r"^https://chyoa.com/chapter/[A-Za-z0-9\-_]+.[0-9]+$")
-CHYOA_USER_REGEX = re.compile(r"^https://chyoa.com/user/([A-Za-z0-9\-_]+)$")
+CHAPTER_ID_REGEX = re.compile(r"https://chyoa.com/[^.]+\.([0-9]+)")
+CHYOA_CHAPTER_REGEX = re.compile(r"https://chyoa.com/chapter/[A-Za-z0-9\-_]+.[0-9]+")
+CHYOA_USER_REGEX = re.compile(r"https://chyoa.com/user/([A-Za-z0-9\-_]+)")
 
 class ChapterParser(HTMLParser):
     def __init__(self):
@@ -74,7 +74,7 @@ class ChapterParser(HTMLParser):
                     if self.in_choices and not value.endswith("login"):
                         self.current_choice = value
                     else:
-                        match = CHYOA_USER_REGEX.match(value)
+                        match = CHYOA_USER_REGEX.fullmatch(value)
                         if match:
                             self.author = match.group(1)
         elif self.in_body:
@@ -114,7 +114,7 @@ class ChapterParser(HTMLParser):
             return "UTF-8"
 
     def get_id(self, url):
-        match = CHAPTER_ID_REGEX.match(url)
+        match = CHAPTER_ID_REGEX.fullmatch(url)
         if match is None:
             raise ValueError("Unable to extract chapter ID from URL (%s)" % url)
 

@@ -1,7 +1,10 @@
-__all__ = ["write_story", "write_chapter"]
+__all__ = ["write_story", "write_chapter", "write_zip"]
 
+from zipfile import ZipFile
 import json
 import os
+import tarfile
+import tempfile
 
 HTML_TEMPLATE = """\
 <!DOCTYPE html>
@@ -62,4 +65,22 @@ def write_chapter(chapter, dest_dir):
 
     with open(html_path, "w") as fh:
         fh.write(html)
+
+def write_tar(story, dest_file, compression=""):
+    temp_dir = tempfile.TemporaryDirectory()
+    write_story(story, temp_dir.name)
+
+    with tarfile.open(dest_file, "w:%s" % compression.lower()) as tarfh:
+        os.chdir(temp_dir.name)
+        for fn in os.listdir(temp_dir.name):
+            tarfh.add(fn)
+
+def write_zip(story, dest_file):
+    temp_dir = tempfile.TemporaryDirectory()
+    write_story(story, temp_dir.name)
+
+    with ZipFile(dest_file, "w") as zipfh:
+        os.chdir(temp_dir.name)
+        for fn in os.listdir(temp_dir.name):
+            zipfh.write(fn)
 

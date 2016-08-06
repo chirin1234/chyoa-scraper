@@ -4,11 +4,15 @@ __all__ = ["main"]
 __license__ = "MIT"
 
 from .scraper import Scraper
-from .serial import write_story
+from .serial import write_story, write_tar, write_zip
 from .util import get_elapsed_time
 
 import os.path
+import re
 import time
+
+ZIP_FILE_REGEX = re.compile(r".*\.zip", re.IGNORECASE)
+TAR_FILE_REGEX = re.compile(r".*\.tar(?:\.([a-z]+)|)", re.IGNORECASE)
 
 def main(argv=[__file__]):
     if len(argv) < 2:
@@ -28,6 +32,20 @@ def main(argv=[__file__]):
     start = time.time()
     scraper = Scraper(argv[1])
     scraper.scrape()
-    write_story(scraper.story, dest)
+    story = scraper.story
+
+    if ZIP_FILE_REGEX.fullmatch(dest):
+        write_zip(story, dest)
+    else:
+        match = TAR_FILE_REGEX.fullmatch(dest)
+        if match:
+            compression = match.group(1)
+            if compression:
+                write_tar(story, dest, compression)
+            else:
+                write_tar(story, dest)
+        else:
+            write_story(story, dest)
+
     print("Finished in %s." % get_elapsed_time(time.time() - start))
 

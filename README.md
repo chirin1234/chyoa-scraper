@@ -6,7 +6,7 @@ This program uses Python 3. You can either import it as a library, or run it fro
 
 `python -m chyoa chyoa-story-url [destination-path]`
 
-By default the program stores the exported story in the current directory.
+By default the program stores the exported story in the current directory. If an archive file is listed as the `destination-path` (e.g. `.zip`, `.tar.xz`) then the files are stored inside of the specified archive.
 
 ### File Format
 Each story is serialized as multiple files within a directory. A file called `meta.json` will contain metadata about the story. All the other files are chapters, referenced by their CHYOA IDs. These files are unordered, allowing chapters to link to as many or as few other chapters as they wish. All that is needed to recreate the story is a reference to the root chapter, which is given in `meta.json`.

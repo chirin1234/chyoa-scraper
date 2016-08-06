@@ -37,5 +37,5 @@ class Scraper(object):
 
     @staticmethod
     def is_chyoa_url(url):
-        return bool(CHYOA_URL_REGEX.match(url))
+        return bool(CHYOA_URL_REGEX.fullmatch(url))
 
