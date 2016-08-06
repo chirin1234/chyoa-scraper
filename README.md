@@ -8,6 +8,11 @@ This program uses Python 3. You can either import it as a library, or run it fro
 
 By default the program stores the exported story in the current directory.
 
+### File Format
+Each story is serialized as multiple files within a directory. A file called `meta.json` will contain metadata about the story. All the other files are chapters, referenced by their CHYOA IDs. These files are unordered, allowing chapters to link to as many or as few other chapters as they wish. All that is needed to recreate the story is a reference to the root chapter, which is given in `meta.json`.
+
+Each chapter is composed of two files: a JSON file and an HTML file. The JSON file stores metadata about the chapter, such as the author and the avaible choices for the next chapter, while the HTML file stores the actual contents of the chapter.
+
 #### License
 Available under the terms of the MIT license. See `LICENSE`.
 

@@ -18,7 +18,7 @@ HTML_TEMPLATE = """\
 def write_story(story, dest_dir):
     data = {
         "title": story.title,
-        "description": story.description,
+        "description": story.description.replace("\r\n", "\n"),
         "author": story.author,
         "root": story.id,
     }
