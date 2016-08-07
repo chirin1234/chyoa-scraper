@@ -10,11 +10,14 @@ CHYOA_URL_REGEX = re.compile(r"^https://chyoa.com/story/[^ ]+\.[0-9]+$")
 class Scraper(object):
     def __init__(self):
         self.parser = ChapterParser()
+
+    def _reset(self):
         self.story = None
         self.visited = set()
         self.to_visit = []
 
-    def scrape(self, url):
+    def scrape(self, url, recursive=True):
+        self._reset()
         fields = self.parser.get_chapter_fields(url)
         self.visited.add(url)
         self.story = Story(**fields)
@@ -23,8 +26,12 @@ class Scraper(object):
             self.story.title, self.story.name, get_choice_names(self.story.choices)))
 
         self._scrape_urls(list(self.story.choices))
-        while self.to_visit:
-            self._scrape_urls(self.to_visit)
+
+        if recursive:
+            while self.to_visit:
+                self._scrape_urls(self.to_visit)
+
+        return self.story
 
     def _scrape_urls(self, urls):
         new_to_visit = []

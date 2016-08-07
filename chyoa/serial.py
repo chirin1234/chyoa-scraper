@@ -66,18 +66,24 @@ def write_chapter(chapter, dest_dir):
     with open(html_path, "w") as fh:
         fh.write(html)
 
-def write_tar(story, dest_file, compression=""):
+def write_tar(story, dest_file, compression="", is_story=True):
     temp_dir = tempfile.TemporaryDirectory()
-    write_story(story, temp_dir.name)
+    if story:
+        write_story(story, temp_dir.name)
+    else:
+        write_chapter(story, temp_dir.name)
 
     with tarfile.open(dest_file, "w:%s" % compression.lower()) as tarfh:
         os.chdir(temp_dir.name)
         for fn in os.listdir(temp_dir.name):
             tarfh.add(fn)
 
-def write_zip(story, dest_file):
+def write_zip(story, dest_file, s_story=True):
     temp_dir = tempfile.TemporaryDirectory()
-    write_story(story, temp_dir.name)
+    if story:
+        write_story(story, temp_dir.name)
+    else:
+        write_chapter(story, temp_dir.name)
 
     with ZipFile(dest_file, "w") as zipfh:
         os.chdir(temp_dir.name)
