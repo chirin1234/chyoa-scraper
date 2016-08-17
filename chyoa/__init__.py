@@ -6,7 +6,7 @@ __license__ = "MIT"
 from .download import Downloader
 from .tree import ChyoaTree
 from .util import get_elapsed_time
-import os.path
+import os
 import time
 
 def main(argv=[__file__]):
@@ -14,6 +14,7 @@ def main(argv=[__file__]):
         print("Usage: %s action [options]" % os.path.basename(argv[0]))
         exit(1)
 
+    debug = os.environ.get("DEBUG", False)
     action = argv[1]
 
     start = time.time()
@@ -22,6 +23,7 @@ def main(argv=[__file__]):
             print("Usage: %s %s url [destination]" % (os.path.basename(argv[0]), action))
             exit(1)
 
+        if debug: print("Downloader(recursive=%s)" % (action == "download"))
         dl = Downloader(recursive=(action == "download"))
 
         url = argv[2]
@@ -30,12 +32,14 @@ def main(argv=[__file__]):
         else:
             dest = argv[3]
 
-        dl.download(url, dest)
+        if debug: print("Downloader.download(%s, %s)" % (url, dest))
+        dl.download(url, dest, debug=debug)
     elif action == "tree":
         if len(argv) < 3:
             print("Usage: %s tree path" % os.path.basename(argv[0]))
             exit(1)
 
+        if debug: print("ChyoaTree(%s)" % path)
         path = argv[2]
         tree = ChyoaTree(path)
         tree.display()

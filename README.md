@@ -6,6 +6,8 @@ You can run this utility from the command line:
 
 `python3 -m chyoa action [options]`
 
+If the environment variable `DEBUG` is set, then debugging messages will be printed.
+
 #### Available actions
 ##### Download
 `python3 -m chyoa download chyoa-story-url [destination-path]`  
@@ -15,7 +17,7 @@ This will download a given chapter and all its children. The `download-only` act
 
 By default the program stores the exported story in the current directory. If an archive file is listed as the `destination-path` (e.g. `.zip`, `.tar.xz`) then the files are stored inside of the specified archive.
 
-You can also use this to capture just a subtree of a story. If you pass the URL of a chapter rather than the story, you will only get chapters that stem from to the end.
+You can also use this to capture just a subtree of a story. If you pass the URL of a chapter rather than the story, you will only get chapters that stem from that chapter to the end.
 
 #### Tree
 `python3 -m chyoa tree chyoa-path`
