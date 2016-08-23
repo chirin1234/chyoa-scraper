@@ -125,7 +125,7 @@ def write_chapter(chapter, dest_dir, chapter_pool={}):
 
 def write_tar(story, dest_file, compression="", is_story=True):
     temp_dir = tempfile.TemporaryDirectory()
-    if hasattr(story, "chapters"):
+    if is_story:
         write_story(story, temp_dir.name)
     else:
         write_chapter(story, temp_dir.name)
@@ -135,9 +135,9 @@ def write_tar(story, dest_file, compression="", is_story=True):
         for fn in os.listdir(temp_dir.name):
             tarfh.add(fn)
 
-def write_zip(story, dest_file, s_story=True):
+def write_zip(story, dest_file, is_story=True):
     temp_dir = tempfile.TemporaryDirectory()
-    if hasattr(story, "chapters"):
+    if is_story:
         write_story(story, temp_dir.name)
     else:
         write_chapter(story, temp_dir.name)

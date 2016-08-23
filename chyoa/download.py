@@ -24,7 +24,7 @@ class Downloader(object):
 
         if ZIP_FILE_REGEX.fullmatch(dest):
             if debug: print("%s: zip file" % dest)
-            write_zip(story, dest, story=self.recursive)
+            write_zip(story, dest, is_story=self.recursive)
         else:
             if debug: print("%s: tar file" % dest)
             match = TAR_FILE_REGEX.fullmatch(dest)
