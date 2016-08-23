@@ -1,6 +1,7 @@
 __all__ = ["write_story", "write_chapter", "write_zip"]
 
 from zipfile import ZipFile
+import codecs
 import html
 import json
 import os
@@ -87,7 +88,7 @@ def write_story(story, dest_dir):
     if not os.path.exists(dest_dir):
         os.mkdir(dest_dir)
 
-    with open(story_path, "w") as fh:
+    with codecs.open(story_path, "w", "utf-8") as fh:
         json.dump(data, fh)
 
     write_chapter(story, dest_dir, story.chapters)
@@ -117,10 +118,10 @@ def write_chapter(chapter, dest_dir, chapter_pool={}):
     metadata_path = os.path.join(dest_dir, "%s.json" % chapter.id)
     html_path = os.path.join(dest_dir, "%s.html" % chapter.id)
 
-    with open(metadata_path, "w") as fh:
+    with codecs.open(metadata_path, "w", "utf-8") as fh:
         json.dump(metadata, fh)
 
-    with open(html_path, "w") as fh:
+    with codecs.open(html_path, "w", "utf-8") as fh:
         fh.write(html_data)
 
 def write_tar(story, dest_file, compression="", is_story=True):
