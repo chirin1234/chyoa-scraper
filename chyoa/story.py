@@ -10,6 +10,7 @@ class Chapter(object):
         self.text = text
         self.question = question
         self.choices = choices
+        # choices: set( (id, chapter_url )
 
     def __repr__(self):
         return """Chapter(name=%r, author=%r, text=%r, question=%r, choices=%s\n)""" % (
@@ -22,6 +23,7 @@ class Story(Chapter):
         self.name = "Introduction"
         self.description = kwargs["description"]
         self.chapters = {}
+        # chapters: { id: chapter_object }
 
     def __repr__(self):
         return """Story(title=%r, description=%r, root=%s\n)""" % (
