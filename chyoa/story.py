@@ -4,11 +4,11 @@ from .util import abridge
 
 class Chapter(object):
     def __init__(self, name, description, id, author, text, question, choices):
-        self.name = name
+        self.name = name.replace('%', '%%')
         self.id = id
-        self.author = author
-        self.text = text
-        self.question = question
+        self.author = author.replace('%', '%%')
+        self.text = text.replace('%', '%%')
+        self.question = question.replace('%', '%%')
         self.choices = choices
         # choices: set( (id, chapter_url )
 
