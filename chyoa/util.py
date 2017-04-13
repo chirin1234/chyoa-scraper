@@ -42,5 +42,5 @@ def get_choice_names(choices):
         lines.append("")
         return "\n".join(lines)
     else:
-        return "(none)\n"
+        return "    (none)\n"
 

@@ -46,6 +46,7 @@ class ChapterParser(HTMLParser):
         self.feed(html)
 
         return {
+            "url": url,
             "name": self.name,
             "description": self.description,
             "id": self.get_id(url),

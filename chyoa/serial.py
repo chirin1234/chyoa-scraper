@@ -81,6 +81,7 @@ def write_story(story, dest_dir):
         "description": story.description.replace("\r\n", "\n"),
         "author": story.author,
         "root": story.id,
+        "url": story.url,
     }
 
     story_path = os.path.join(dest_dir, "meta.json")
