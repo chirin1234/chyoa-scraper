@@ -1,6 +1,8 @@
 __all__ = ["ChyoaTree", "TreeCharset", "Tree", "STANDARD_TREE_CHARSET", "ASCII_TREE_CHARSET"]
 
+from pprint import pprint
 import json
+import re
 import os
 
 class TreeCharset(object):
@@ -13,70 +15,78 @@ class TreeCharset(object):
 STANDARD_TREE_CHARSET = TreeCharset("│", "├", "─", "└")
 ASCII_TREE_CHARSET = TreeCharset("|", "|", "-", "`")
 
+JSON_CHAPTER_FILE = re.compile(r'([0-9]+)\.json', re.IGNORECASE)
+
 class Tree(object):
-    def __init__(self, root, children):
-        # Children in form {child: {grandchildren}}
-        self.root = root
-        self.children = children
+    def __init__(self, root_id, root_name):
+        self.root_id = root_id
+        self.root_name = root_name
+
+    def get_children(self, id):
+        # returns [(id, name)...]
+        raise NotImplementedError("Invoking virtual method")
 
     def display(self, charset=STANDARD_TREE_CHARSET):
-        print(self.root)
-        self.display_subtree(self.children, [], charset)
+        print(self.root_name)
+        stack = [(self.root_id, False)]
 
-    def display_subtree(self, children, level, charset):
-        child_list = list(children.keys())
-        child_list.sort()
+        while stack:
+            children = self.get_children(stack.pop()[0])
+            for i, (id, name) in enumerate(children):
+                last = bool(i == (len(children) - 1))
+                if last:
+                    corner = charset.corner
+                else:
+                    corner = charset.intersection
 
-        for i in range(len(child_list)):
-            notlast = (i < len(child_list) - 1)
+                print(''.join((
+                    self.get_indent(stack, charset),
+                    corner,
+                    charset.branch,
+                    ' ',
+                    name,
+                )))
+                self._push_children(stack, id)
 
-            if notlast:
-                corner = charset.intersection
-            else:
-                corner = charset.corner
-
-            child = child_list[i]
-            print("%s%s%s %s" %
-                    (self.get_indent(level, charset), corner, charset.branch, child))
-
-            if children[child]:
-                self.display_subtree(children[child], level + [notlast], charset)
+    def _push_children(self, stack, id):
+        children = self.get_children(id)
+        for i, (id, name) in enumerate(children):
+            last = bool(i == (len(children) - 1))
+            stack.append((id, last))
 
     @staticmethod
-    def get_indent(level, charset):
+    def get_indent(stack, charset):
         separator = []
-
-        for active in level:
-            if active:
-                separator.append("%s  " % charset.trunk)
+        for child, last in stack:
+            if last:
+                separator.append(charset.trunk)
             else:
-                separator.append("    ")
-
-        return "".join(separator)
+                separator.append(' ')
+            separator.append('  ')
+        return ''.join(separator)
 
 class ChyoaTree(Tree):
     def __init__(self, path):
-        prev_dir = os.getcwd()
-        os.chdir(path)
-        with open("meta.json", "r") as fh:
+        self.objects = {}
+
+        meta_fn = os.path.join(path, 'meta.json')
+        with open(meta_fn, 'r') as fh:
             meta = json.load(fh)
 
-        name, tree = self.build_dict(meta["root"])
-        Tree.__init__(self, name, tree)
-        os.chdir(prev_dir)
+        # Read in all chapter objects
+        for fn in os.listdir(path):
+            match = JSON_CHAPTER_FILE.match(fn)
+            if match is None:
+                continue
+            id = int(match.group(1))
+            with open(os.path.join(path, fn), 'r') as fh:
+                obj = json.load(fh)
+            self.objects[id] = obj
+        Tree.__init__(self, meta['root'], self.objects[meta['root']]['name'])
 
-    @staticmethod
-    def build_dict(id):
-        tree = {}
-
-        with open("%d.json" % id, "r") as fh:
-            chapter = json.load(fh)
-
-        name = chapter["name"]
-
-        for child in chapter["choices"]:
-            child_name, grandchildren = ChyoaTree.build_dict(child)
-            tree[child_name] = grandchildren
-
-        return name, tree
+    def get_children(self, id):
+        l = []
+        for child in self.objects[id]['choices']:
+            l.append((child, self.objects[child]['name']))
+        return l
 
