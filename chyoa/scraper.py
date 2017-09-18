@@ -21,13 +21,11 @@ class Scraper(object):
         fields = self.parser.get_chapter_fields(url)
         self.visited.add(url)
         self.story = Story(**fields)
-
         print("Story \"%s\":\nRoot \"%s\":\n%s" % (
             self.story.title, self.story.name, get_choice_names(self.story.choices)))
-
-        self._scrape_urls(list(self.story.choices))
-
+        
         if recursive:
+            self._scrape_urls(list(self.story.choices))
             while self.to_visit:
                 self._scrape_urls(self.to_visit)
 

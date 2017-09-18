@@ -39,8 +39,8 @@ def main(argv=[__file__]):
             print("Usage: %s tree path" % os.path.basename(argv[0]))
             exit(1)
 
-        if debug: print("ChyoaTree(%s)" % path)
         path = argv[2]
+        if debug: print("ChyoaTree(%s)" % path)
         tree = ChyoaTree(path)
         tree.display()
     else:

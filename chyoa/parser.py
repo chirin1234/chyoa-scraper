@@ -10,6 +10,8 @@ CHARSET_REGEX = re.compile(r"charset=([^ ]+)")
 CHAPTER_ID_REGEX = re.compile(r"https://chyoa.com/[^.]+\.([0-9]+)")
 CHYOA_CHAPTER_REGEX = re.compile(r"https://chyoa.com/chapter/[A-Za-z0-9\-_]+.[0-9]+")
 CHYOA_USER_REGEX = re.compile(r"https://chyoa.com/user/([A-Za-z0-9\-_]+)")
+CHAPTER_NUMBER_REGEX = re.compile(r'Chapter ([0-9]+?)')
+
 
 class ChapterParser(HTMLParser):
     def __init__(self):
@@ -27,6 +29,18 @@ class ChapterParser(HTMLParser):
         self.in_choices = False
         self.current_choice = None
         self.choices = set()
+        self.tags = []
+        self.modified_time = None
+        self.created_time = None
+        self.in_story_header = False
+        self.in_chapter_header = False
+        self.in_cover = False
+        self.in_meta = False
+        self.subtitle = None
+        self.prev_question = None
+        self.chapter_number = None
+        self.cover_url = None
+        self.in_h2 = False
 
     def get_chapter_fields(self, url):
         self._reset()
@@ -54,6 +68,13 @@ class ChapterParser(HTMLParser):
             "text": "".join(self.body),
             "question": " ".join(self.question).strip(),
             "choices": self.choices,
+            "tags": self.tags,
+            "created_time": self.created_time,
+            "modified_time": self.modified_time,
+            "subtitle": self.subtitle,
+            "prev_question": self.prev_question,
+            "cover_url" : self.cover_url,
+            "chapter_number" : self.chapter_number
         }
 
     def handle_starttag(self, tag, attrs):
@@ -64,6 +85,12 @@ class ChapterParser(HTMLParser):
                         self.name = dict(attrs)["content"]
                     elif value == "og:description":
                         self.description = dict(attrs)["content"]
+                    elif value == "article:published_time":
+                        self.created_time = dict(attrs)["content"]
+                    elif value == "article:modified_time":
+                        self.modified_time = dict(attrs)["content"]
+                    elif value == "article:tag":
+                        self.tags = [x.strip() for x in dict(attrs)["content"].split(',')]
                 if key == "name" and value =="description":
                     self.description = dict(attrs)["content"]
         elif tag == "div":
@@ -77,6 +104,11 @@ class ChapterParser(HTMLParser):
             for key, value in attrs:
                 if key == "class" and value == "question-header":
                     self.in_question = True
+                if key == "class" and value == "story-header":
+                    self.in_story_header = True
+                if key == "class" and value == "chapter-header":
+                    self.in_chapter_header = True
+                    
         elif tag == "a":
             for key, value in attrs:
                 if key == "href":
@@ -86,10 +118,23 @@ class ChapterParser(HTMLParser):
                         match = CHYOA_USER_REGEX.fullmatch(value)
                         if match:
                             self.author = match.group(1)
+        elif tag == "h2":
+            self.in_h2 = True
+        elif tag == "img" and self.in_story_header and 'cover' in dict(attrs)["src"]:
+            self.cover_url = dict(attrs)["src"]
         elif self.in_body:
             self.body.append(self.create_tag(tag, attrs))
 
     def handle_data(self, data):
+        if self.in_story_header or self.in_chapter_header:
+            match = CHAPTER_NUMBER_REGEX.search(data)
+            if match:
+                self.chapter_number = match.group(1)
+        if self.in_h2:
+            if self.in_story_header:
+                self.subtitle = data
+            elif self.in_chapter_header:
+                self.prev_question = data
         if self.in_body:
             self.body.append(data)
         elif self.in_question:
@@ -108,8 +153,14 @@ class ChapterParser(HTMLParser):
                 self.body.append("</%s>" % tag)
         elif self.in_question and tag == "header":
             self.in_question = False
+        elif self.in_story_header and tag == "header":
+            self.in_story_header = False
+        elif self.in_chapter_header and tag == "header":
+            self.in_chapter_header = False
         elif self.in_choices and tag == "div":
             self.in_choices = False
+        elif tag == "h2":
+            self.in_h2 = False
 
     @staticmethod
     def create_tag(tag, attrs):

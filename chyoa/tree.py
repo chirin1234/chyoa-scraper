@@ -2,6 +2,8 @@ __all__ = ["ChyoaTree", "TreeCharset", "Tree", "STANDARD_TREE_CHARSET", "ASCII_T
 
 import json
 import os
+import urllib.parse
+
 
 class TreeCharset(object):
     def __init__(self, trunk, intersection, branch, corner):
@@ -37,7 +39,7 @@ class Tree(object):
 
             child = child_list[i]
             print("%s%s%s %s" %
-                    (self.get_indent(level, charset), corner, charset.branch, child))
+                (self.get_indent(level, charset), corner, charset.branch, child))
 
             if children[child]:
                 self.display_subtree(children[child], level + [notlast], charset)
@@ -61,7 +63,7 @@ class ChyoaTree(Tree):
         with open("meta.json", "r") as fh:
             meta = json.load(fh)
 
-        name, tree = self.build_dict(meta["root"])
+        name, tree = self.build_dict(meta["file_path"])
         Tree.__init__(self, name, tree)
         os.chdir(prev_dir)
 
@@ -69,7 +71,7 @@ class ChyoaTree(Tree):
     def build_dict(id):
         tree = {}
 
-        with open("%d.json" % id, "r") as fh:
+        with open("%s.json" % urllib.parse.unquote(id), "r") as fh:
             chapter = json.load(fh)
 
         name = chapter["name"]

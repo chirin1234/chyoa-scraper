@@ -1,7 +1,7 @@
 __all__ = ["Downloader"]
 
 from .scraper import Scraper
-from .serial import write_story, write_tar, write_zip
+from .serial import write_story, write_tar, write_zip, write_chapter
 import re
 
 ZIP_FILE_REGEX = re.compile(r".*\.zip", re.IGNORECASE)
@@ -18,7 +18,7 @@ class Downloader(object):
 
         if debug: print("Scraper().scrape(%s)" % url)
         scraper = Scraper()
-        scraper.scrape(url)
+        scraper.scrape(url, self.recursive)
         story = scraper.story
         if debug: print("story: %s" % story)
 
